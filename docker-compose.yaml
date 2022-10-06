@@ -10,6 +10,8 @@ services:
     hostname: kdc.mykerberos.com
     volumes:
       - ./server/:/server
+    networks:
+      - kerberos
   kerberos-client:
     tty: true
     stdin_open: true
@@ -18,3 +20,10 @@ services:
     hostname: client.mykerberos.com
     volumes:
       - ./client/:/client
+    depends_on:
+      - kerberos-server
+    networks:
+      - kerberos
+
+networks:
+  kerberos: {}
