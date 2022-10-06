@@ -2,10 +2,7 @@ version: '3'
 services:
   kerberos-server:
     container_name: kerberos-server
-    image: qcastel/kerberos-server
-    build:
-      context: server
-      dockerfile: ./server/Dockerfile
+    image: qcastel/kerberos-server:latest
     ports:
       - "6088:88"
     hostname: kdc.mykerberos.com
@@ -13,10 +10,7 @@ services:
       - ./server/:/server
   kerberos-client:
     container_name: kerberos-client
-    image: qcastel/kerberos-client
-    build:
-      context: client
-      dockerfile: ./client/Dockerfile
+    image: qcastel/kerberos-client:latest
     hostname: client.mykerberos.com
     volumes:
       - ./client/:/client
