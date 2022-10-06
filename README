@@ -1,3 +1,35 @@
+# Setup
+
+```sh
+# Start the containers
+docker-compose up
+
+# Connect to the server container
+podman exec -it kerberos-server bash
+# Copy the conf files
+cp /server/krb5.* /etc/
+cp -r /server/krb5kdc /etc/
+cp /server/krb5kdc-var-lib/* /var/lib/krb5kdc/
+krb5kdc
+cat /etc/hosts
+# note the <server ip>
+# kadmin.local
+
+# Connect to the client container
+podman exec -it kerberos-client bash
+echo '<server ip> mykerberos.com' >> /etc/hosts
+# you can get the ip by doing curl host.containers.internal for podman
+# you can get the ip by doing curl host.docker.internal for docker
+echo '<docker host ip> dss.mykerberos.com' >> /etc/hosts
+cp /client/krb5.conf /etc/
+kinit alice
+curl -v  --negotiate -u :  http://dss.mykerberos.com:8082/dip/api/spnego-login
+```
+
+In Firefox navigate to `about:config` and chanage `network.negotiate-auth.trusted-uris` =	`.mykerberos.com`
+
+
+
 Useful links:
 
 
