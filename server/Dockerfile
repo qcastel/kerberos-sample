@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 RUN apt update  && apt upgrade
-RUN apt install -y curl vim iputils-ping krb5-admin-server krb5-kdc
+RUN apt install -y curl vim iputils-ping krb5-admin-server krb5-kdc systemd
