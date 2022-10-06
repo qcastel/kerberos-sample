@@ -1,6 +1,8 @@
 version: '3'
 services:
   kerberos-server:
+    stdin_open: true
+    tty: true
     container_name: kerberos-server
     image: qcastel/kerberos-server:latest
     ports:
@@ -9,6 +11,8 @@ services:
     volumes:
       - ./server/:/server
   kerberos-client:
+    tty: true
+    stdin_open: true
     container_name: kerberos-client
     image: qcastel/kerberos-client:latest
     hostname: client.mykerberos.com
