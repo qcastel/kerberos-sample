@@ -1,38 +1,55 @@
-# Setup
+# Setup a dev environment for SSO SPNEGO
 
-```sh
-# Start the containers
-docker-compose up
+- Clone the repo
 
-# Connect to the server container
-podman exec -it kerberos-server bash
-# Copy the conf files
-cp /server/krb5.* /etc/
-cp -r /server/krb5kdc /etc/
-cp /server/krb5kdc-var-lib/* /var/lib/krb5kdc/
-krb5kdc
-cat /etc/hosts
-# note the <server ip>
-# kadmin.local
-
-# Connect to the client container
-podman exec -it kerberos-client bash
-echo '<server ip> mykerberos.com' >> /etc/hosts
-# you can get the ip by doing curl host.containers.internal for podman
-# you can get the ip by doing curl host.docker.internal for docker
-echo '<docker host ip> dss.mykerberos.com' >> /etc/hosts
-cp /client/krb5.conf /etc/
-kinit alice
-curl -v  --negotiate -u :  http://dss.mykerberos.com:8082/dip/api/spnego-login
+```
+git clone git@github.com:qcastel/kerberos-sample.git
+```
+- Add the following hostname:
+```
+sudo echo "127.0.0.1  MYKERBEROS.COM mykerberos.com dss.mykerberos.com" >> /etc/hosts
 ```
 
-In Firefox navigate to `about:config` and chanage `network.negotiate-auth.trusted-uris` =	`.mykerberos.com`
+- Start DSS
+- Create a user `alice`
+- Go to `Administration` > `Settings` > `Login (LDAP, SSO) & Security`:
+      - enable SSO
+      - `Protocol`: `SPNEGO`
+      - `Keytab location`: `/path/to/kerberos-sample/service/dss.keytab`
+      - `Principal`: `HTTP/dss.mykerberos.com@MYKERBEROS.COM`
+      - `krb5.conf file location`: `/path/to/kerberos-sample/service/krb5.conf`
+      - `Strip realm`: `true`
+      - `Login remapping rules`:  `^(.*)$` -> `$1`
+      
+ - restart DSS
+ - `cd /path/to/kerberos-sample`
+ - `docker-compose up`
+ 
+ => You should see the client container making a curl and having 302 response  with some cookies setup
+ 
+ Now, you can try SPNEGO from Firefox
+ 
+ First, in a terminal:
+ 
+ ```
+sudo cp /path/to/kerberos-sample/service/krb5.conf /etc/krb5.conf
+kinit -kt `/path/to/kerberos-sample/client/alice.keytab alice
+ ```
 
+- Open Firefox
+- Go to `about:config `
+- Accept risk and continue
+- Start typing `negotiate`
+- Setup the property `network.negotiate-auth.trusted-uris` to `.mykerberos.com`
+- In another tab, go to `http://dss.mykerberos.com:8082`
 
+=> You should be login as Alice
 
-Useful links:
+# Troubleshooting
 
+If you use podman, you may encounter a clock skew error: `Failure unspecified at GSS-API level (Mechanism level: Clock skew too great`.
 
- https://keystrokecountdown.com/articles/kerberos/index.html
- https://ubuntu.com/server/docs/service-kerberos-principals
- https://subscription.packtpub.com/book/networking-and-servers/9781785286421/5/ch05lvl1sec42/setting-up-a-kerberos-server-with-ubuntu
+You can fix it by updating the date of your virtual machine:
+```sh
+podman machine ssh date --set $(date -Iseconds)
+```
